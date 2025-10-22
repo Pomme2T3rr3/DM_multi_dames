@@ -101,7 +101,9 @@ int jeu_joueur_suivant(Jeu *jeu){
     do{
         i++; // On incrémente i jusqu'à ....
         index = (jeu->joueur_courant + i) % 4; // index = 0 ou 1 ou 2 ou 3 (de manière forcée) 
-    } while (jeu->joueur[index].etat != 1);
+    } while (jeu->joueur[index].etat != 1); // On sort de la boucle lorsqu'on arrive sur le joueur_courant 
+    
+    if((index + 1) == jeu->joueur_courant ) return 0;  // On n'a pas changé de joueur
     jeu->joueur_courant = index;
     return 1;
 }
