@@ -21,7 +21,7 @@ typedef struct {
     Plateau plateau;
     Joueur joueur[MAX_JOUEURS];
     int nb_joueurs;
-    int joueur_courant;
+    int joueur_courant; // de 1 à 4 
     int tour;
     int pion_est_saisi; // 1 si un pion est saisi, 0 sinon
     int pion_i, pion_j; // la ligne et colonne du pion saisi (0 sinon)
@@ -88,3 +88,21 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
     }
     return 0;
 }
+
+int jeu_arreter(Jeu *jeu){
+    if(jeu->nb_joueurs == 1) return 0; //S'il reste un joueur, on continue la partie. 
+    jeu->joueur[jeu->joueur_courant - 1].etat--;
+    jeu->nb_joueurs--;
+    return 1;
+}
+
+int jeu_joueur_suivant(Jeu *jeu){
+    int i = 0, index; 
+    do{
+        i++; // On incrémente i jusqu'à ....
+        index = (jeu->joueur_courant + i) % 4; // index = 0 ou 1 ou 2 ou 3 (de manière forcée) 
+    } while (jeu->joueur[index].etat != 1);
+    jeu->joueur_courant = index;
+    return 1;
+}
+
