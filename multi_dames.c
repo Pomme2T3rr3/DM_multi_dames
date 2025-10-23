@@ -29,7 +29,7 @@ typedef struct {
 
 
 int jeu_capturer(Jeu *jeu, int i, int j) {
-    if (0<=i && i<=7 && 0<=j && j<=7) {
+    if (case_est_valide(i,j) > 0) {
         jeu->plateau.pion[i][j] = 0;
         return 1;
     } else return 0;
@@ -108,3 +108,52 @@ int jeu_joueur_suivant(Jeu *jeu){
     return 1;
 }
 
+int case_est_valide(int i, int j){
+    if (0 > i || i > 7 || 0 > j || j > 7){
+        return 0;
+    }
+    return 1;
+}
+
+void swap(int *a, int *b){
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+void jeu_table_flip(Jeu *jeu){
+/* 
+Cette fonction consiste à faire une rotation à 180° du plateau de jeu.
+*/
+    for(int i = 0; i < TAILLE; i++){
+        for(int j = 0; j<TAILLE;j++){
+            // On ne fait l’échange que pour la moitié des éléments
+            if (i < (TAILLE-1-i)|| (i == (TAILLE-1-i) && j < (TAILLE-1-j))){ 
+                swap(&(jeu->plateau.pion[i][j]), &(jeu->plateau.pion[TAILLE-1-i][TAILLE-1-j]));
+            }
+        }
+    }
+}
+
+void jeu_afficher(Jeu *jeu){
+    printf("  ");
+    for(int a = 0; a<TAILLE;a++){
+        printf(" %d",a+1);
+    }
+    printf("\n  ----------------\n");
+    for(int i = 0; i<TAILLE; i++){
+        printf("%d |",i+1);
+        for(int j = 0; j < TAILLE; j++){
+            if(jeu->plateau.pion[i][j]==1){
+                printf("B ");
+            }else if(jeu->plateau.pion[i][j]==2){
+                printf("R ");
+            } else if(jeu->plateau.pion[i][j]==3){
+                printf("N ");
+            }else{
+                printf("  ");
+            }
+        }
+        printf("\n");   
+    }
+}
