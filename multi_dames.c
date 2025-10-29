@@ -27,6 +27,27 @@ typedef struct {
     int pion_i, pion_j; // la ligne et colonne du pion saisi (0 sinon)
 } Jeu;
 
+void jeu_ecrire(Jeu *jeu){
+    
+    FILE *fichier = fopen("fichier_sauvegarde","w");
+    
+    fprintf(fichier,"%d %d %d\n",jeu->nb_joueurs,jeu->tour,jeu->joueur_courant);
+    for(int i = 0;i<MAX_JOUEURS;i++){
+        fprintf(fichier,"%d %d\n",jeu->joueur[i].etat,jeu->joueur[i].score);
+    }
+    fprintf(fichier, "%d %d %d\n", jeu->pion_est_saisi, jeu->pion_i, jeu->pion_j);
+    
+    for(int i = 0; i < TAILLE; i++){
+        for(int j = 0; j < TAILLE; j++){
+            fprintf(fichier,"%d ",jeu->plateau.pion[i][j]);
+        }
+        fprintf(fichier,"\n");
+    }
+
+    fclose(fichier);
+
+}
+
 
 int jeu_capturer(Jeu *jeu, int i, int j) {
     if (case_est_valide(i,j) > 0) {
