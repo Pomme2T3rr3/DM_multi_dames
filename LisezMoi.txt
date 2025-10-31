@@ -18,7 +18,7 @@ Le jeu MultiDames se joue entre 2 et 4 joueurs.
 Le programme demande d’abord le nombre de joueurs.
 Au premier tour, chaque joueur retire un pion blanc de son choix du plateau.
 
--À partir du deuxième tour :
+        -À partir du deuxième tour :
 
 Le joueur peut décider de s’arrêter (s’il reste au moins un autre joueur actif).
 Sinon, il choisit un pion pouvant effectuer un saut.
