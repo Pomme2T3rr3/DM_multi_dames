@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 
 #define MAX_JOUEURS 4
@@ -175,30 +176,81 @@ Cette fonction consiste à faire une rotation à 180° du plateau de jeu.
 }
 
 void jeu_afficher(Jeu *jeu){
-    printf("  ");
-    for(int a = 0; a<TAILLE;a++){
-        printf(" %d",a+1);
+    
+    //-Affichage du score-
+    
+    printf("Score:\n");
+    printf("    ");
+    for(int a = 0; a<MAX_JOUEURS;a++){
+        printf("J%d  ",a+1);
     }
-    printf("\n  ----------------\n");
+    printf("\n");
+    printf("    ");
+    for(int b = 0; b<MAX_JOUEURS;b++){
+        printf("%d   ",jeu->joueur[b].score);
+    }
+    printf("\n");
+
+
+    printf("Tour: %d\n", jeu->tour);
+    printf("Joueur %d    Etat: %d\n",jeu->joueur_courant + 1, jeu->joueur->etat);
+    
+    // Affichage du plateau -
+    printf("    ");
+    for(int c = 0; c<TAILLE;c++){
+        printf("%d   ",c+1);
+    }
+    printf("\n  ---------------------------------\n");
     for(int i = 0; i<TAILLE; i++){
         printf("%d |",i+1);
         for(int j = 0; j < TAILLE; j++){
             if(jeu->plateau.pion[i][j]==1){
-                printf("B ");
+                if( i == jeu->pion_i && j == jeu->pion_j){
+                    printf("[B] ");
+                }else{ 
+                    printf(" B  ");
+                }
             }else if(jeu->plateau.pion[i][j]==2){
-                printf("R ");
+                if( i == jeu->pion_i && j == jeu->pion_j){
+                    printf("[R] ");
+                }else{ 
+                    printf(" R  ");
+                }
             } else if(jeu->plateau.pion[i][j]==3){
-                printf("N ");
+                if( i == jeu->pion_i && j == jeu->pion_j){
+                    printf("[N] ");
+                }else{ 
+                    printf(" N  ");
+                }
             }else{
-                printf("  ");
+                printf("    ");
             }
         }
         printf("\n");
     }
 }
 
+void jeu_prepare_plateau(Jeu *jeu) {
+    /* 
+    Prépare aléatoirement un plateau de 34 pions blancs,
+    20 pions rouges et 10 pions noirs.
+    */
+    int nb_pions[] = {34, 20, 10}; // Blancs, Rouges, Noirs
+    
+    for(int i = 0; i < TAILLE; i++) {
+        for(int j = 0; j < TAILLE; j++) {
+            int couleur;
+            do {
+                couleur = (rand() % 3) + 1; // Tire 1, 2 ou 3
+            } while(nb_pions[couleur - 1] == 0); // Retire si plus de pions de cette couleur
+            jeu->plateau.pion[i][j] = couleur;
+            nb_pions[couleur - 1]--; // Décrémente
+        }
+    }
+}
 
 int main(void) {
+    srand(time(NULL));
     Jeu jeu;
     int action;
     int i, j;
@@ -223,9 +275,7 @@ int main(void) {
         }
         jeu.pion_est_saisi = 0;
         jeu.pion_i = jeu.pion_j = 0;
-        for (int x = 0; x < TAILLE; x++)
-            for (int y = 0; y < TAILLE; y++)
-                jeu.plateau.pion[x][y] = (x + y) % 4 == 0 ? 1 : 0;
+        jeu_prepare_plateau(&jeu);
     }
 
     printf("Partie chargée avec succès !\n");
