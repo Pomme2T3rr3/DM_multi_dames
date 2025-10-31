@@ -1,0 +1,39 @@
+Damian DENEUVILLE
+Ntelombila MATINGOU
+TP 3
+
+                LisezMoi — Projet multi_dames.c
+
+                ----Comment le compiler---
+
+En compilant de cette façon : gcc -Wall -std=c17 multi_dames.c -o multi_dames
+Puis en executant de cette manière : ./multi_dames
+
+                    ---Comment jouer---
+
+Le jeu MultiDames se joue entre 2 et 4 joueurs.
+
+        -Déroulement-
+
+Le programme demande d’abord le nombre de joueurs.
+Au premier tour, chaque joueur retire un pion blanc de son choix du plateau.
+
+-À partir du deuxième tour :
+
+Le joueur peut décider de s’arrêter (s’il reste au moins un autre joueur actif).
+Sinon, il choisit un pion pouvant effectuer un saut.
+Il saisit sa position puis entre successivement les coordonnées des cases vers lesquelles il souhaite sauter.
+Chaque saut retire un pion et ajoute sa valeur au score du joueur.
+La partie se termine quand plus aucun pion ne peut sauter.
+Le joueur actif au moment de la fin perd la somme des valeurs restantes sur le plateau.
+
+
+                ---Difficultés rencontrées---
+
+--- Conception de certaines fonctions pour:
+
+- des choix stylistiques : jeu_afficher().
+- des raisons techniques : jeu_table_flip() et jeu_sauter_vers().
+
+--- Le fait que de bien vérifier que les coordonnées choisies par le joueur
+correspondent bien un emplacement voulu de la table à deux dimensions.
