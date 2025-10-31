@@ -31,7 +31,7 @@ typedef struct {
 void jeu_ecrire(Jeu *jeu){
 
     printf("%d %d %d\n",jeu->nb_joueurs,jeu->tour,jeu->joueur_courant);
-    for(int i = 0;i<MAX_JOUEURS;i++){
+    for(int i = 0;i<jeu->nb_joueurs;i++){
         printf("%d %d\n",jeu->joueur[i].etat,jeu->joueur[i].score);
     }
     printf("%d %d %d\n", jeu->pion_est_saisi, jeu->pion_i, jeu->pion_j);
@@ -70,9 +70,20 @@ int case_est_valide(int i, int j){
     return 1;
 }
 
+void jeu_ajoute_score(Jeu *jeu, int valeur) {
+    jeu->joueur[jeu->joueur_courant].score += valeur;
+}
 
 int jeu_capturer(Jeu *jeu, int i, int j) {
     if (case_est_valide(i,j) > 0) {
+        
+    int pion = jeu->plateau.pion[i][j];
+    if (pion == 0)
+        return 0;
+    
+    if (pion == 1) jeu_ajoute_score(jeu, 1);
+    else if (pion == 2) jeu_ajoute_score(jeu, 5);
+    else if (pion == 3) jeu_ajoute_score(jeu, 8);     
         jeu->plateau.pion[i][j] = 0;
         return 1;
     } else return 0;
@@ -80,6 +91,9 @@ int jeu_capturer(Jeu *jeu, int i, int j) {
 
 
 int jeu_saisir_pion(Jeu *jeu, int i, int j) {
+    if (case_est_valide(i,j) == 0){
+        return 0;
+    }
     if (jeu->plateau.pion[i][j] != 0) {
         jeu->pion_est_saisi = 1;
         jeu->pion_i = i;
@@ -93,52 +107,118 @@ int jeu_saisir_pion(Jeu *jeu, int i, int j) {
 }
 
 
-int jeu_supprime_pion(Jeu* jeu, int depart_i, int depart_j, int arrivee_i, int arrivee_j) {
-    if (depart_i == arrivee_i) {
-        jeu->plateau.pion[depart_i][arrivee_j-depart_j] = 0;
-    } else if (depart_j == arrivee_j) {
-        jeu->plateau.pion[arrivee_i-depart_i][depart_j] = 0;
-    } else {
-        jeu->plateau.pion[arrivee_i-depart_i][arrivee_j-depart_j] = 0;
-    }
+int jeu_supprime_pion(Jeu *jeu, int i, int j) {
+    jeu->plateau.pion[i][j] = 0;
     return 1;
 }
 
 
-int jeu_ajoute_score(Jeu* jeu, int depart_i, int depart_j, int arrivee_i, int arrivee_j) {
-    if (depart_i == arrivee_i) {
-        jeu->joueur[jeu->joueur_courant].score += jeu->plateau.pion[depart_i][arrivee_j-depart_j];
-        return 1;
-    } else if (depart_j == arrivee_j) {
-        jeu->joueur[jeu->joueur_courant].score += jeu->plateau.pion[arrivee_i-depart_i][depart_j];
-        return 1;
-    } else {
-        jeu->joueur[jeu->joueur_courant].score += jeu->plateau.pion[arrivee_i-depart_i][arrivee_j-depart_j];
-        return 1;
-    }
-}
 
+int plateau_pion_peut_sauter(Plateau *plateau, int i, int j) {
+    if (plateau->pion[i][j] == 0)
+        return 0;
 
-int jeu_sauter_vers(Jeu *jeu, int i, int j) {
-    int case_depart_i = jeu->pion_i;
-    int case_depart_j = jeu->pion_j;
-    if (jeu->plateau.pion[i][j] == 0) {
-        if ((abs(jeu->pion_i-i)<=2 && abs(jeu->pion_j-j)<=2) && (abs(jeu->pion_i-i)!=0 && abs(jeu->pion_j-j)!=0)) {
-            jeu_ajoute_score(jeu, case_depart_i, case_depart_j, i, j);
-            jeu_supprime_pion(jeu, case_depart_i, case_depart_j, i, j);
-            jeu->plateau.pion[i][j] = jeu->plateau.pion[jeu->pion_i][jeu->pion_j];  // on remplace la case d'arrivee par la couleur du pion de depart
-            jeu->plateau.pion[jeu->pion_i][jeu->pion_j] = 0;    // on met à NULL le pion de départ
+    int dirs[8][2] = {
+        {-1, -1}, {-1, 0}, {-1, 1},
+        { 0, -1},          { 0, 1},
+        { 1, -1}, { 1, 0}, { 1, 1}
+    };
 
-            return 1;
+    for (int d = 0; d < 8; d++) {
+        int mi = i + dirs[d][0];
+        int mj = j + dirs[d][1];
+        int di = i + 2 * dirs[d][0];
+        int dj = j + 2 * dirs[d][1];
+
+        // Case au milieu doit être un pion, case d'arrivée vide
+        if (mi >= 0 && mi < TAILLE && mj >= 0 && mj < TAILLE &&
+            di >= 0 && di < TAILLE && dj >= 0 && dj < TAILLE &&
+            plateau->pion[mi][mj] != 0 && plateau->pion[di][dj] == 0)
+        {
+            return 1; // Saut possible
         }
     }
     return 0;
 }
 
+
+int jeu_sauter_vers(Jeu *jeu, int i, int j) {
+
+    // Vérifier qu'un pion est saisi
+    if (jeu->pion_est_saisi == 0)
+        return 0;
+
+    int si = jeu->pion_i;
+    int sj = jeu->pion_j;
+
+    // Case valide ?
+    if (i < 0 || i >= TAILLE || j < 0 || j >= TAILLE)
+        return 0;
+
+    // Destination doit être vide
+    if (jeu->plateau.pion[i][j] != 0)
+        return 0;
+
+    int di = i - si;
+    int dj = j - sj;
+
+    // Vérifier que le mouvement est un saut de distance 2
+    if (!(abs(di) == 2 || abs(dj) == 2))
+        return 0;
+
+    // On interdit le cas où |di| + |dj| = 0 (pas de déplacement)
+    // ou > 4 (trop loin)
+    if (abs(di) + abs(dj) == 0 || abs(di) + abs(dj) > 4)
+        return 0;
+
+    // Position de la case sautée
+    int mi = si + di / 2;
+    int mj = sj + dj / 2;
+
+    // Vérifier que la case intermédiaire est valide et contient un pion
+    if (mi < 0 || mi >= TAILLE || mj < 0 || mj >= TAILLE)
+        return 0;
+
+    int pion_cible = jeu->plateau.pion[mi][mj];
+
+    if (pion_cible == 0)
+        return 0;
+
+    // Ajouter le score selon la valeur du pion sauté
+    if (pion_cible == 1)      jeu_ajoute_score(jeu, 1);
+    else if (pion_cible == 2) jeu_ajoute_score(jeu, 5);
+    else if (pion_cible == 3) jeu_ajoute_score(jeu, 8);
+
+    // Supprimer le pion sauté
+    jeu_supprime_pion(jeu, mi, mj);
+
+    // Déplacer le pion saisi
+    jeu->plateau.pion[i][j] = jeu->plateau.pion[si][sj];
+    jeu->plateau.pion[si][sj] = 0;
+
+    // Mettre à jour la position du pion
+    jeu->pion_i = i;
+    jeu->pion_j = j;
+
+    // Vérifier si un autre saut est possible
+    if (!plateau_pion_peut_sauter(&jeu->plateau, i, j)) {
+        jeu->pion_est_saisi = 0; // fin de chaîne de sauts
+    }
+
+    return 1;
+}
+
 int jeu_arreter(Jeu *jeu){
-    if(jeu->nb_joueurs == 1) return 0; //S'il reste un joueur, on continue la partie.
-    jeu->joueur[jeu->joueur_courant - 1].etat--;
-    jeu->nb_joueurs--;
+    int actifs = 0;
+
+    for (int i = 0; i < jeu->nb_joueurs; i++) {
+        if (jeu->joueur[i].etat == 1)
+            actifs++;
+    }
+    if (actifs <= 1)
+        return 0;
+    jeu->joueur[jeu->joueur_courant].etat = 0;
+
     return 1;
 }
 
@@ -150,7 +230,13 @@ int jeu_joueur_suivant(Jeu *jeu){
     } while (jeu->joueur[index].etat != 1); // On sort de la boucle lorsqu'on arrive sur le joueur_courant
 
     if((index + 1) == jeu->joueur_courant ) return 0;  // On n'a pas changé de joueur
+    if((index+1) < jeu->joueur_courant){
+        jeu->tour++;
+    }
     jeu->joueur_courant = index;
+    jeu->pion_est_saisi = 0;
+    jeu->pion_i = 0;
+    jeu->pion_j = 0;
     return 1;
 }
 
